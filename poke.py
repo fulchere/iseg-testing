@@ -11,13 +11,37 @@ ws = create_connection("ws://192.168.1.101:8080")
 import json
 
 login = '''{"i":"","t":"login","c":{"l":"user","p":"user","t":""},"r":"websocket"}'''
-#st = json.loads(json_data)
-
-
 ws.send(login)
-
-
 res = ws.recv()
 print(res)
+
+
+getVoltage = '''{
+	"i": "55005e1a49cad-23",
+	"t": "request",
+	"c": [
+		{
+			"c": "getItem",
+			"p": {
+				"p": {
+					"l": "0",
+					"a": "*",
+					"c": "*"
+				},
+				"i": "Status.firmwareRelease",
+				"v": "",
+				"u": ""
+			}
+		}
+	],
+	"r": "websocket"
+}'''
+ws.send(getVoltage)
+res2 = ws.recv()
+print(res2)
+res2 = ws.recv()
+print(res2)
+
+
 ws.close()
 
