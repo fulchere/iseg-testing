@@ -9,12 +9,40 @@ from websocket import create_connection
 ws = create_connection("ws://192.168.1.101:8080",timeout=40)
 import json
 
-login = '''{"i":"","t":"login","c":{"l":"user","p":"user","t":""},"r":"websocket"}'''
+login = '''{
+	"i": "",
+	"t": "login",
+	"c": {
+		"l": "user",
+		"p": "user",
+		"t": ""
+	},
+	"r": "websocket"
+}'''
 ws.send(login)
 res = ws.recv()
 print(res)
 
-getVoltage='''{"i":"55005e1a49cad-23","t":"request","c":[{"c":"getUpdate","p":{"p":{"l":"0","a":"*","c":"*"},"i":"Control.voltageSet","v":"","u":""}],"r":"websocket"}'''
+getVoltage= '''{
+	"i": "55005e1a49cad-95",
+	"t": "request",
+	"c": [
+		{
+			"c": "getItem",
+			"p": {
+				"p": {
+					"l": "0",
+					"a": "*",
+					"c": "*"
+				},
+				"i": "Status.voltageMeasure",
+				"v": "",
+				"u": ""
+			}
+		}
+	],
+	"r": "websocket"
+}'''
 
 getConfig = '''{
                 "i":"55005e1a49cad-1",
