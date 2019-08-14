@@ -1,15 +1,11 @@
-#import requests
-#r = requests.get('http://192.168.1.101/api/login/user/user')
-#print(r.content, r.text, r.status_code) ### HTTP doesn't work with this power supply
-import websocket
+import json
+import time
+import threading
 from websocket import create_connection
-#ws = websocket.WebSocket()
-#ws.connect("ws://192.168.1.101:8080", http_proxy_host="proxy_host_name", http_proxy_port=3128)
 
 ws = create_connection("ws://192.168.1.101:8080",timeout=40)
-import json
 
-login = '''{
+login_request = '''{
 	"i": "",
 	"t": "login",
 	"c": {
@@ -19,44 +15,65 @@ login = '''{
 	},
 	"r": "websocket"
 }'''
-ws.send(login)
-res = ws.recv()
-print(res)
-
+ws.send(login_request)
+login_message = ws.recv()
+session_id = json.loads(login_message)['i']
 getVoltage= '''{
-	"i": "55005e1a49cad-95",
-	"t": "request",
-	"c": [
-		{
-			"c": "getItem",
-			"p": {
-				"p": {
-					"l": "0",
-					"a": "*",
-					"c": "*"
-				},
-				"i": "Status.voltageMeasure",
-				"v": "",
-				"u": ""
-			}
-		}
-	],
-	"r": "websocket"
-}'''
+	        "i": "%s",
+	        "t": "request",
+	        "c": [
+		            {
+			            "c": "getItem",
+			            "p": {
+				            "p": {
+					            "l": "0",
+					            "a": "*",
+					            "c": "*"
+				            },
+				            "i": "Status.safetyLoopClosed",
+				            "v": "",
+				            "u": ""
+			            }
+		            }
+	        ],
+	        "r": "websocket"
+            }''' % (session_id,)
 
 getConfig = '''{
-                "i":"55005e1a49cad-1",
-                "t":"getConfig",
-                "c":[],
-                "r":"websocket"
-                }'''
+            "i":"%s",
+            "t":"getConfig",
+            "c":[],
+            "r":"websocket"
+            }''' % (session_id,)
 
 ws.send(getVoltage)
-print(ws)
-while True:
-    print("entered loop")
-    res2 = ws.recv()
-    print "returned json file %s" % res2
+
+def get_json():
+    while True:
+        received = ws.recv()
+        jsoned = json.loads(received)
+        print(json.dumps(jsoned, indent=4, sort_keys=True))
+        if 'c' in jsoned[0]:
+            for item in jsoned[0]['c']:
+                typ = item['d']['i']
+                if typ == "System.time":
+                    print("TIME:",item['d']['v'])
+                if typ == "Status.temperature0":
+                    print("TEMP0",item['d']['v'])
+                if typ == "Status.temperature1":
+                    print("TEMP1:",item['d']['v'])
+                if typ == "Status.voltageMeasure":
+                    print("VOLTAGE:",item['d']['v'],"CHANNEL:",item['d']['p']['c'])
+                if typ == "Status.safetyLoopClosed":
+                    print("LOOP STATUS: (1=True,0=False)",item['d']['v'])
+t_ls = []
+for i in range(2):
+    thrd = threading.Thread(target=get_json)
+    t_ls.append(thrd)
+for t in t_ls:
+    t.start()
+for t in t_ls:
+    t.join()
 
 ws.close()
 
