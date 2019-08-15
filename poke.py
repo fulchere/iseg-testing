@@ -30,21 +30,21 @@ getVoltage= '''{
 					            "a": "*",
 					            "c": "*"
 				            },
-				            "i": "Status.safetyLoopClosed",
+				            "i": "Status.firmwareRelease",
 				            "v": "",
 				            "u": ""
 			            }
 		            }
 	        ],
 	        "r": "websocket"
-            }''' % (session_id,)
+            }''' % session_id
 
 getConfig = '''{
             "i":"%s",
             "t":"getConfig",
             "c":[],
             "r":"websocket"
-            }''' % (session_id,)
+            }''' % session_id
 
 ws.send(getVoltage)
 
@@ -59,11 +59,13 @@ def get_json():
                 if typ == "System.time":
                     print("TIME:",item['d']['v'])
                 if typ == "Status.temperature0":
-                    print("TEMP0",item['d']['v'])
+                    print("TEMP0",item['d']['v'],item['d']['u'])
                 if typ == "Status.temperature1":
-                    print("TEMP1:",item['d']['v'])
+                    print("TEMP1:",item['d']['v'],item['d']['u'])
                 if typ == "Status.voltageMeasure":
-                    print("VOLTAGE:",item['d']['v'],"CHANNEL:",item['d']['p']['c'])
+                    print("VOLTAGE:",item['d']['v'],"CHANNEL:",item['d']['p']['c'],item['d']['u'])
+                if typ == "Status.currentMeasure":
+                    print("CURRENT:",item['d']['v'],"CHANNEL:",item['d']['p']['c'],item['d']['u'])
                 if typ == "Status.safetyLoopClosed":
                     print("LOOP STATUS: (1=True,0=False)",item['d']['v'])
 t_ls = []
